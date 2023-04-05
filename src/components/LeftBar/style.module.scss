@@ -1,0 +1,40 @@
+.wrapper {
+    width: 12.5rem;
+    max-height: 37.5rem;
+    overflow: hidden;
+    transition: all 0.3s ease-out;
+    border-radius: .3125rem;
+    position: absolute;
+    left: -12.5rem;
+    top: 5.625rem;
+    border: 1px solid #fff;
+    transition: all .3s ease;
+    
+    .container {
+        width: calc(12.5rem + 17px);
+        max-height: 37.5rem;
+        overflow: auto;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+
+        .upload {
+            width: 11.25rem;
+            text-align: center;
+            background-color: #2f54eb;
+            color: #fff;
+            margin-bottom: .625rem;
+        }
+
+        .unlogin {
+            width: 11.25rem;
+            text-align: center;
+            line-height: 2rem;
+            color: red;
+        }
+    }
+}
+
+.wrapperActive {
+    left: 0;
+}

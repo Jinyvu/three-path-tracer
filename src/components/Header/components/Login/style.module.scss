@@ -1,0 +1,12 @@
+.login {
+    display: flex;
+    align-items: center;
+    height: inherit;
+    width: inherit;
+    
+    .avatar {
+        width: 2rem;
+        height: 2rem;
+        margin-right: 1rem;
+    }
+}

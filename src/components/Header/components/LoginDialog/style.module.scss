@@ -1,0 +1,46 @@
+.loginDialog {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 59.375rem;
+    height: 31.25rem;
+    // background-color: #f0f5ff;
+
+    .cover {
+        width: 25rem;
+        height: 100%;
+        background-repeat: no-repeat;
+        background-size: cover;
+        -webkit-background-size: cover;
+        -o-background-size: cover;
+        background-position: center;
+    }
+
+    .right {
+        width: 31.25rem;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        flex-direction: column;
+        padding: 1rem;
+
+        .title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            width: 100%;
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .form {
+            width: 100%;
+            .formItem {
+                margin-bottom: 2rem;
+
+                .submit {
+                    width: 100%;
+                }
+            }
+        }
+    }
+}
