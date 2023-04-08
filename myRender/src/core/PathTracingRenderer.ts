@@ -1,6 +1,7 @@
 import { Color, FloatType, NormalBlending, PerspectiveCamera, RGBAFormat, Vector2, Vector4, WebGLRenderTarget, WebGLRenderer } from "three"
 import { FullScreenQuad } from "three/examples/jsm/postprocessing/Pass";
 import { SobolNumberMapGenerator } from "../utils/SobolNumberMapGenerator"
+import { PhysicalPathTracingMaterial } from "../materials/pathtracing/PhysicalPathTracingMaterial";
 
 const originClearColor = new Color()
 const _scissor = new Vector4()
@@ -31,6 +32,10 @@ export class PathTracingRenderer {
         this.#fsQuad.material = value
     }
 
+    get target() {
+        return this.#primaryTarget
+    }
+
     constructor(renderer: WebGLRenderer) {
         this.#renderer = renderer
         this.#sobolTarget = new SobolNumberMapGenerator().generate(this.#renderer)
@@ -51,7 +56,7 @@ export class PathTracingRenderer {
     dispose() {
         this.#primaryTarget.dispose();
         this.#task = null;
-        this.fsQuad.dispose()
+        this.#fsQuad.dispose()
         this.#sobolTarget.dispose()
     }
 

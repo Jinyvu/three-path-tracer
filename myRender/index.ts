@@ -1,13 +1,61 @@
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { envMaps, models } from "./render.config";
-import { ACESFilmicToneMapping, PerspectiveCamera, Scene, WebGLRenderer, sRGBEncoding } from "three";
-import { PathTracingRenderer } from "../render/src";
+import { ACESFilmicToneMapping, Box3, CustomBlending, DoubleSide, FloatType, Group, LoadingManager, Mesh, MeshBasicMaterial, MeshPhysicalMaterial, MeshStandardMaterial, NoToneMapping, PerspectiveCamera, PlaneGeometry, Scene, Sphere, WebGLRenderer, sRGBEncoding } from "three";
+import { PathTracingRenderer } from "./src/core/PathTracingRenderer";
+import { PhysicalPathTracingMaterial } from './src/materials/pathtracing/PhysicalPathTracingMaterial'
+import { FullScreenQuad } from "three/examples/jsm/postprocessing/Pass";
+import { generateRadialFloorTexture } from "./utils/generateRadialFloorTexture";
+import { GUI } from "three/examples/jsm/libs/lil-gui.module.min.js";
+import { GradientEquirectTexture } from './src/textures/GradientEquirectTexture'
+import { RGBELoader } from "three/examples/jsm/loaders/RGBELoader";
+import { BlurredEnvMapGenerator } from './src/utils/BlurredEnvMapGenerator'
+import { MaterialReducer } from './src/core/MaterialReducer'
+import { PathTracingSceneWorker } from './src/works/PathTracingSceneWorker'
+import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
+import { MeshoptDecoder } from "three/examples/jsm/libs/meshopt_decoder.module.js";
+import { LDrawLoader } from "three/examples/jsm/loaders/LDrawLoader";
+import { LDrawUtils } from "three/examples/jsm/utils/LDrawUtils";
+
 
 
 let initialModel = Object.keys(models)[0];
 
 const params = {
+	multipleImportanceSampling: true,
+	acesToneMapping: true,
+	resolutionScale: 1 / window.devicePixelRatio,
+	tilesX: 2,
+	tilesY: 2,
+	samplesPerFrame: 1,
 
+	model: initialModel,
+
+	envMap: envMaps["Aristea Wreck Puresky"],
+
+	gradientTop: "#bfd8ff",
+	gradientBottom: "#ffffff",
+
+	environmentIntensity: 1.0,
+	environmentBlur: 0.0,
+	environmentRotation: 0,
+
+	cameraProjection: "Perspective",
+
+	backgroundType: "Gradient",
+	bgGradientTop: "#111111",
+	bgGradientBottom: "#000000",
+	backgroundAlpha: 1.0,
+	checkerboardTransparency: true,
+
+	enable: true,
+	bounces: 5,
+	filterGlossyFactor: 0.5,
+	pause: false,
+
+	floorColor: "#111111",
+	floorOpacity: 1.0,
+	floorRoughness: 0.2,
+	floorMetalness: 0.2,
 };
 
 // 容器
@@ -15,9 +63,18 @@ let creditEl: HTMLElement, loadingEl: HTMLElement, samplesEl: HTMLElement, canva
 // 渲染器
 let renderer: WebGLRenderer, ptRenderer: PathTracingRenderer
 // 场景
-let scene: Scene
-// 相机
-let perspectiveCamera: PerspectiveCamera
+let scene: Scene, sceneInfo
+// 相机, 控制器
+let perspectiveCamera: PerspectiveCamera, controls: OrbitControls
+// 屏幕分割对象
+let fsQuad: FullScreenQuad
+// 背景
+let envMap, backgroundMap: GradientEquirectTexture, envMapGenerator: BlurredEnvMapGenerator
+// 辅助
+let floorPlane: Mesh, stats: Stats, gui: GUI
+// 状态
+let loadingModel = false, delaySamples = 0
+
 
 interface IInit {
 	canvasId: string;
@@ -45,15 +102,15 @@ export default async function init({ canvasId, loadingId, samplesId }: IInit) {
 	perspectiveCamera = new PerspectiveCamera(60, aspect, 0.025, 500);
 	perspectiveCamera.position.set(-1, 0.25, 1);
 
-	// // 设置背景贴图
-	// backgroundMap = new GradientEquirectTexture();
-	// backgroundMap.topColor.set(params.bgGradientTop);
-	// backgroundMap.bottomColor.set(params.bgGradientBottom);
-	// backgroundMap.update();
+	// 设置背景贴图
+	backgroundMap = new GradientEquirectTexture();
+	backgroundMap.topColor.set(params.bgGradientTop);
+	backgroundMap.bottomColor.set(params.bgGradientBottom);
+	backgroundMap.update();
 
 	// 初始化路径追踪渲染器
 	ptRenderer = new PathTracingRenderer(renderer);
-	ptRenderer.alpha = true;
+	// ptRenderer.alpha = true;
 	ptRenderer.material = new PhysicalPathTracingMaterial();
 	ptRenderer.tiles.set(params.tilesX, params.tilesY);
 	ptRenderer.material.setDefine(
@@ -63,7 +120,7 @@ export default async function init({ canvasId, loadingId, samplesId }: IInit) {
 	ptRenderer.material.backgroundMap = backgroundMap;
 	ptRenderer.material.transmissiveBounces = 10;
 
-	// ？
+	// 屏幕分割，性能优化
 	fsQuad = new FullScreenQuad(
 		new MeshBasicMaterial({
 			map: ptRenderer.target.texture,
@@ -76,7 +133,7 @@ export default async function init({ canvasId, loadingId, samplesId }: IInit) {
 	controls = new OrbitControls(perspectiveCamera, renderer.domElement);
 	controls.addEventListener("change", resetRenderer);
 
-	// ？环境模糊度
+	// 环境模糊度
 	envMapGenerator = new BlurredEnvMapGenerator(renderer);
 
 	// 实例化地板
@@ -101,7 +158,6 @@ export default async function init({ canvasId, loadingId, samplesId }: IInit) {
 	scene.background = backgroundMap;
 	ptRenderer.tiles.set(params.tilesX, params.tilesY);
 
-	updateCamera(params.cameraProjection);
 	updateModel();
 	updateEnvMap();
 	onResize();
@@ -128,7 +184,7 @@ function animate() {
 
 	// 光栅化
 	if (ptRenderer.samples < 1.0 || !params.enable) {
-		renderer.render(scene, activeCamera);
+		renderer.render(scene, perspectiveCamera);
 	}
 
 	if (params.enable && delaySamples === 0) {
@@ -139,12 +195,12 @@ function animate() {
 			sceneInfo.materials,
 			sceneInfo.textures
 		);
-		ptRenderer.material.filterGlossyFactor = params.filterGlossyFactor;
+		// ptRenderer.material.filterGlossyFactor = params.filterGlossyFactor;
 		ptRenderer.material.environmentIntensity = params.environmentIntensity;
 		ptRenderer.material.bounces = params.bounces;
-		ptRenderer.material.physicalCamera.updateFrom(activeCamera);
+		ptRenderer.material.physicalCamera.updateFrom(perspectiveCamera);
 
-		activeCamera.updateMatrixWorld();
+		perspectiveCamera.updateMatrixWorld();
 
 		if (!params.pause || ptRenderer.samples < 1) {
 			for (let i = 0, l = params.samplesPerFrame; i < l; i++) {
@@ -186,11 +242,6 @@ function onResize() {
 	const aspect = w / h;
 	perspectiveCamera.aspect = aspect;
 	perspectiveCamera.updateProjectionMatrix();
-
-	const orthoHeight = orthoWidth / aspect;
-	orthoCamera.top = orthoHeight / 2;
-	orthoCamera.bottom = orthoHeight / -2;
-	orthoCamera.updateProjectionMatrix();
 }
 
 // 生成gui
@@ -233,11 +284,6 @@ function buildGui() {
 	resolutionFolder.add(params, "tilesY", 1, 10, 1).onChange((v) => {
 		ptRenderer.tiles.y = v;
 	});
-	resolutionFolder
-		.add(params, "cameraProjection", ["Perspective", "Orthographic"])
-		.onChange((v) => {
-			updateCamera(v);
-		});
 	resolutionFolder.open();
 
 	const environmentFolder = gui.addFolder("environment");
@@ -342,30 +388,6 @@ function updateEnvBlur() {
 	if (params.backgroundType !== "Gradient") {
 		scene.background = blurredEnvMap;
 	}
-}
-
-// 更新现在使用的相机
-function updateCamera(cameraProjection) {
-	if (cameraProjection === "Perspective") {
-		if (activeCamera) {
-			perspectiveCamera.position.copy(activeCamera.position);
-		}
-
-		activeCamera = perspectiveCamera;
-	} else {
-		if (activeCamera) {
-			orthoCamera.position.copy(activeCamera.position);
-		}
-
-		activeCamera = orthoCamera;
-	}
-
-	controls.object = activeCamera;
-	ptRenderer.camera = activeCamera;
-
-	controls.update();
-
-	resetRenderer();
 }
 
 // 将设置有透明度的材质转换为MeshPhysicalMaterial材质
