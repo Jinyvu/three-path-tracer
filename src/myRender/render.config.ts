@@ -1,4 +1,4 @@
-import { MeshPhysicalMaterial, Color, DoubleSide, Mesh, CylinderGeometry, Box3 } from 'three';
+import { MeshPhysicalMaterial, Color, DoubleSide } from 'three';
 
 export const models = {
     'M2020 Rover': {
@@ -208,7 +208,7 @@ export const models = {
                 transmission: 1,
                 ior: 1.2,
                 attenuationDistance: 0.06,
-                attenuationColor: 0x46dfea
+                attenuationColor: new Color().set(0x46dfea)
             });
 
             model.traverse(c => {

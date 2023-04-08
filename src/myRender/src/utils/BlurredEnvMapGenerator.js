@@ -7,8 +7,8 @@ import {
   EquirectangularReflectionMapping,
 } from 'three';
 import { FullScreenQuad } from 'three/examples/jsm/postprocessing/Pass.js';
-import { MaterialBase } from '../materials/MaterialBase.js';
-import { utilsGLSL } from '../shader/common/utils.glsl.js';
+import { MaterialBase } from '../materials/MaterialBase';
+import { utilsGLSL } from '../shader/common/utils.glsl';
 
 class PMREMCopyMaterial extends MaterialBase {
   constructor() {

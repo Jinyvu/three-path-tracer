@@ -25,7 +25,7 @@ export class PathTracingRenderer {
     #curTile: number = 0;
 
     get material() {
-        return this.#fsQuad.material
+        return this.#fsQuad.material as any
     }
 
     set material(value) {
@@ -89,7 +89,10 @@ export class PathTracingRenderer {
             material.opacity = this.#opacityFactor / (this.samples + 1)
             material.blending = NormalBlending
 
-            const [subX, subY, subW, subH] = this.#subFrame
+            const subX = this.#subFrame[0]
+            const subY = this.#subFrame[1]
+            const subW = this.#subFrame[2]
+            const subH = this.#subFrame[3]
 
             const w = this.#primaryTarget.width
             const h = this.#primaryTarget.height

@@ -7,7 +7,7 @@ import {
   BackSide,
   DoubleSide,
 } from 'three';
-import { reduceTexturesToUniqueSources, getTextureHash } from './utils.js';
+import { reduceTexturesToUniqueSources, getTextureHash } from './utils';
 
 const MATERIAL_PIXELS = 45;
 const MATERIAL_STRIDE = MATERIAL_PIXELS * 4;

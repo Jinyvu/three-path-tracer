@@ -348,8 +348,10 @@ export class PhysicalPathTracingMaterial extends MaterialBase {
 
     onBeforeRender() {
         // 背景虚化
+        // @ts-ignore
         this.setDefine('FEATURE_DOF', this.physicalCamera.bokehSize === 0 ? 0 : 1);
         // 环境贴图
+        // @ts-ignore
         this.setDefine('FEATURE_BACKGROUND_MAP', this.backgroundMap ? 1 : 0);
     }
 }

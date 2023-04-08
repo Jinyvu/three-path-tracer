@@ -7,11 +7,11 @@ import {
     WebGLRenderTarget,
 } from 'three';
 import { FullScreenQuad } from 'three/examples/jsm/postprocessing/Pass.js';
-import { MaterialBase } from '../materials/MaterialBase.js';
+import { MaterialBase } from '../materials/MaterialBase';
 import {
     sobolCommonGLSL,
     sobolGenerationGLSL,
-} from '../shader/rand/sobol.glsl';
+} from '../shader/rand/sobol.glsl.js';
 
 class SobolNumbersMaterial extends MaterialBase {
     constructor() {

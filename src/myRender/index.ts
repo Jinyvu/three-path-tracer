@@ -1,11 +1,12 @@
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { envMaps, models } from "./render.config";
-import { ACESFilmicToneMapping, Box3, CustomBlending, DoubleSide, FloatType, Group, LoadingManager, Mesh, MeshBasicMaterial, MeshPhysicalMaterial, MeshStandardMaterial, NoToneMapping, PerspectiveCamera, PlaneGeometry, Scene, Sphere, WebGLRenderer, sRGBEncoding } from "three";
+import { ACESFilmicToneMapping, Box3, Color, CustomBlending, DoubleSide, FloatType, Group, LoadingManager, Mesh, MeshBasicMaterial, MeshPhysicalMaterial, MeshStandardMaterial, NoToneMapping, PerspectiveCamera, PlaneGeometry, Scene, Sphere, WebGLRenderer, sRGBEncoding } from "three";
 import { PathTracingRenderer } from "./src/core/PathTracingRenderer";
 import { PhysicalPathTracingMaterial } from './src/materials/pathtracing/PhysicalPathTracingMaterial'
 import { FullScreenQuad } from "three/examples/jsm/postprocessing/Pass";
 import { generateRadialFloorTexture } from "./utils/generateRadialFloorTexture";
 import { GUI } from "three/examples/jsm/libs/lil-gui.module.min.js";
+import Stats from 'three/examples/jsm/libs/stats.module.js';
 import { GradientEquirectTexture } from './src/textures/GradientEquirectTexture'
 import { RGBELoader } from "three/examples/jsm/loaders/RGBELoader";
 import { BlurredEnvMapGenerator } from './src/utils/BlurredEnvMapGenerator'
@@ -18,7 +19,8 @@ import { LDrawUtils } from "three/examples/jsm/utils/LDrawUtils";
 
 
 
-let initialModel = Object.keys(models)[0];
+let initialModel = Object.keys(models)[2];
+console.log('initialModel', initialModel)
 
 const params = {
 	multipleImportanceSampling: true,
@@ -42,8 +44,8 @@ const params = {
 	cameraProjection: "Perspective",
 
 	backgroundType: "Gradient",
-	bgGradientTop: "#111111",
-	bgGradientBottom: "#000000",
+	bgGradientTop: new Color().set("#111111"),
+	bgGradientBottom: new Color().set("#000000"),
 	backgroundAlpha: 1.0,
 	checkerboardTransparency: true,
 
@@ -59,7 +61,7 @@ const params = {
 };
 
 // 容器
-let creditEl: HTMLElement, loadingEl: HTMLElement, samplesEl: HTMLElement, canvasEl: HTMLCanvasElement;
+let loadingEl: HTMLElement, samplesEl: HTMLElement, canvasEl: HTMLCanvasElement;
 // 渲染器
 let renderer: WebGLRenderer, ptRenderer: PathTracingRenderer
 // 场景
@@ -177,10 +179,10 @@ function animate() {
 		return;
 	}
 
-	floorPlane.material.color.set(params.floorColor);
-	floorPlane.material.roughness = params.floorRoughness;
-	floorPlane.material.metalness = params.floorMetalness;
-	floorPlane.material.opacity = params.floorOpacity;
+	// floorPlane.material.color.set(params.floorColor);
+	// floorPlane.material.roughness = params.floorRoughness;
+	// floorPlane.material.metalness = params.floorMetalness;
+	// floorPlane.material.opacity = params.floorOpacity;
 
 	// 光栅化
 	if (ptRenderer.samples < 1.0 || !params.enable) {
@@ -366,7 +368,7 @@ function buildGui() {
 // 更新环境贴图
 function updateEnvMap() {
 	new RGBELoader().setDataType(FloatType).load(params.envMap, (texture) => {
-		if (scene.environmentMap) {
+		if (scene.environment) {
 			scene.environment.dispose();
 			envMap.dispose();
 		}
@@ -420,7 +422,7 @@ function convertOpacityToTransmission(model, ior) {
 				newMaterial.transmission = 1.0;
 				newMaterial.ior = ior;
 
-				const hsl = {};
+				const hsl = { h: 0, s: 0, l: 0 };
 				newMaterial.color.getHSL(hsl);
 				hsl.l = Math.max(hsl.l, 0.35);
 				newMaterial.color.setHSL(hsl.h, hsl.s, hsl.l);
@@ -446,13 +448,14 @@ async function updateModel() {
 	loadingModel = true;
 	renderer.domElement.style.visibility = "hidden";
 	samplesEl.innerText = "--";
-	creditEl.innerText = "--";
 	loadingEl.innerText = "Loading";
 	loadingEl.style.visibility = "visible";
 
 	// 销毁场景中所有带纹理的物体
 	scene.traverse((c) => {
+		// @ts-ignore
 		if (c.material) {
+			// @ts-ignore
 			const material = c.material;
 			for (const key in material) {
 				if (material[key] && material[key].isTexture) {
@@ -562,8 +565,6 @@ async function updateModel() {
 
 		loadingEl.style.visibility = "hidden";
 
-		creditEl.innerHTML = modelInfo.credit || "";
-		creditEl.style.visibility = modelInfo.credit ? "visible" : "hidden";
 		params.bounces = modelInfo.bounces || 5;
 		params.floorColor = modelInfo.floorColor || "#111111";
 		params.floorRoughness = modelInfo.floorRoughness || 0.2;
@@ -618,6 +619,7 @@ async function updateModel() {
 			"https://raw.githubusercontent.com/gkjohnson/ldraw-parts-library/master/colors/ldcfgalt.ldr"
 		);
 		loader
+			// @ts-ignore
 			.setPartsLibraryPath(
 				"https://raw.githubusercontent.com/gkjohnson/ldraw-parts-library/master/complete/ldraw/"
 			)
