@@ -1,5 +1,5 @@
 import style from './style.module.scss';
-import init from '../../myRender/index';
+import init from '@/myRender';
 import { useEffect } from 'react';
 
 export default function RenderContainer() {
@@ -12,7 +12,7 @@ export default function RenderContainer() {
   }, []);
 
   return (
-    <div className={style.container}>
+    <div className={style.container} id="canvasContainer">
       <div id="loading" className={style.loading}>
         LOADING
       </div>
@@ -22,13 +22,14 @@ export default function RenderContainer() {
             --
           </div>
         </div>
-        <div>
+        {/* <div>
           <div id="credits" className={style.credits}>
             --
           </div>
-        </div>
+        </div> */}
       </div>
       <canvas className={style.canvas} id="renderTarget"></canvas>
+      <div className={style.gui} id="gui"></div>
     </div>
   );
 }

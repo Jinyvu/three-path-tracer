@@ -6,6 +6,9 @@ function isTypedArray( arr ) {
 
 }
 
+/**
+ * 可以遍历多个object，将其中的material和texture分别保存在一起
+ */
 export class MaterialReducer {
 
 	constructor() {
@@ -20,6 +23,7 @@ export class MaterialReducer {
 
 	}
 
+	// 判断两个对象是否相等
 	areEqual( objectA, objectB ) {
 
 		const keySet = new Set();
@@ -152,11 +156,19 @@ export class MaterialReducer {
 
 	}
 
+	/**
+	 * 遍历object中的material，将material和其对应的texture分别加入到this.materials和this.textures中，
+	 * 如果this.materials和this.textures已经存在对应的元素，则不会加入
+	 */
 	process( object ) {
 
 		const { textures, materials } = this;
 		let replaced = 0;
 
+		/**
+		 *  将material加入this.materials中，如果this.materials中已经有material了，则不会加入；
+		 * 	如果this.shareTextures为true，则对于material所使用的texture也会在this.textures中做相应判断
+		 */
 		const processMaterial = material => {
 
 			// Check if another material matches this one

@@ -1,7 +1,7 @@
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { envMaps, models } from "./render.config";
 import { ACESFilmicToneMapping, Box3, Color, CustomBlending, DoubleSide, FloatType, Group, LoadingManager, Mesh, MeshBasicMaterial, MeshPhysicalMaterial, MeshStandardMaterial, NoToneMapping, PerspectiveCamera, PlaneGeometry, Scene, Sphere, WebGLRenderer, sRGBEncoding } from "three";
-import { PathTracingRenderer } from "./src/core/PathTracingRenderer";
+import { PathTracingRenderer } from "./src/core/PathTracingRenderer.js";
 import { PhysicalPathTracingMaterial } from './src/materials/pathtracing/PhysicalPathTracingMaterial'
 import { FullScreenQuad } from "three/examples/jsm/postprocessing/Pass";
 import { generateRadialFloorTexture } from "./utils/generateRadialFloorTexture";
@@ -19,15 +19,15 @@ import { LDrawUtils } from "three/examples/jsm/utils/LDrawUtils";
 
 
 
-let initialModel = Object.keys(models)[0];
+let initialModel = Object.keys(models)[12];
 console.log('initialModel', initialModel)
 
 const params = {
 	multipleImportanceSampling: true,
 	acesToneMapping: true,
 	resolutionScale: 1 / window.devicePixelRatio,
-	tilesX: 2,
-	tilesY: 2,
+	tilesX: 10,
+	tilesY: 10,
 	samplesPerFrame: 1,
 
 	model: initialModel,
@@ -253,7 +253,7 @@ function buildGui() {
 		gui.destroy();
 	}
 
-	gui = new GUI();
+	gui = new GUI({container: document.getElementById('gui')});
 
 	gui.add(params, "model", Object.keys(models)).onChange(updateModel);
 
@@ -270,9 +270,9 @@ function buildGui() {
 	pathTracingFolder.add(params, "bounces", 1, 20, 1).onChange(() => {
 		ptRenderer.reset();
 	});
-	pathTracingFolder.add(params, "filterGlossyFactor", 0, 1).onChange(() => {
-		ptRenderer.reset();
-	});
+	// pathTracingFolder.add(params, "filterGlossyFactor", 0, 1).onChange(() => {
+	// 	ptRenderer.reset();
+	// });
 
 	const resolutionFolder = gui.addFolder("resolution");
 	resolutionFolder
@@ -307,12 +307,12 @@ function buildGui() {
 			ptRenderer.reset();
 		})
 		.name("intensity");
-	environmentFolder
-		.add(params, "environmentRotation", 0, 2 * Math.PI)
-		.onChange((v) => {
-			ptRenderer.material.environmentRotation.makeRotationY(v);
-			ptRenderer.reset();
-		});
+	// environmentFolder
+	// 	.add(params, "environmentRotation", 0, 2 * Math.PI)
+	// 	.onChange((v) => {
+	// 		ptRenderer.material.environmentRotation.makeRotationY(v);
+	// 		ptRenderer.reset();
+	// 	});
 	environmentFolder.open();
 
 	const backgroundFolder = gui.addFolder("background");
@@ -341,29 +341,29 @@ function buildGui() {
 
 		ptRenderer.reset();
 	});
-	backgroundFolder.add(params, "backgroundAlpha", 0, 1).onChange((v) => {
-		ptRenderer.material.backgroundAlpha = v;
-		ptRenderer.reset();
-	});
-	backgroundFolder.add(params, "checkerboardTransparency").onChange((v) => {
-		if (v) document.body.classList.add("checkerboard");
-		else document.body.classList.remove("checkerboard");
-	});
+	// backgroundFolder.add(params, "backgroundAlpha", 0, 1).onChange((v) => {
+	// 	ptRenderer.material.backgroundAlpha = v;
+	// 	ptRenderer.reset();
+	// });
+	// backgroundFolder.add(params, "checkerboardTransparency").onChange((v) => {
+	// 	if (v) document.body.classList.add("checkerboard");
+	// 	else document.body.classList.remove("checkerboard");
+	// });
 
-	const floorFolder = gui.addFolder("floor");
-	floorFolder.addColor(params, "floorColor").onChange(() => {
-		ptRenderer.reset();
-	});
-	floorFolder.add(params, "floorRoughness", 0, 1).onChange(() => {
-		ptRenderer.reset();
-	});
-	floorFolder.add(params, "floorMetalness", 0, 1).onChange(() => {
-		ptRenderer.reset();
-	});
-	floorFolder.add(params, "floorOpacity", 0, 1).onChange(() => {
-		ptRenderer.reset();
-	});
-	floorFolder.close();
+	// const floorFolder = gui.addFolder("floor");
+	// floorFolder.addColor(params, "floorColor").onChange(() => {
+	// 	ptRenderer.reset();
+	// });
+	// floorFolder.add(params, "floorRoughness", 0, 1).onChange(() => {
+	// 	ptRenderer.reset();
+	// });
+	// floorFolder.add(params, "floorMetalness", 0, 1).onChange(() => {
+	// 	ptRenderer.reset();
+	// });
+	// floorFolder.add(params, "floorOpacity", 0, 1).onChange(() => {
+	// 	ptRenderer.reset();
+	// });
+	// floorFolder.close();
 }
 
 // 更新环境贴图

@@ -1,23 +1,28 @@
-import { FloatType, NearestFilter, NoBlending, RGBAFormat, Vector2, WebGLRenderTarget } from 'three';
+import {
+  FloatType,
+  NearestFilter,
+  NoBlending,
+  RGBAFormat,
+  Vector2,
+  WebGLRenderTarget,
+} from 'three';
 import { FullScreenQuad } from 'three/examples/jsm/postprocessing/Pass.js';
 import { MaterialBase } from '../materials/MaterialBase.js';
-import { shaderSobolCommon, shaderSobolGeneration } from '../shader/shaderSobolSampling.js';
+import {
+  sobolCommonGLSL,
+  sobolGenerationGLSL,
+} from '../shader/rand/sobol.glsl.js';
 
 class SobolNumbersMaterial extends MaterialBase {
+  constructor() {
+    super({
+      blending: NoBlending,
 
-	constructor() {
+      uniforms: {
+        resolution: { value: new Vector2() },
+      },
 
-		super( {
-
-			blending: NoBlending,
-
-			uniforms: {
-
-				resolution: { value: new Vector2() },
-
-			},
-
-			vertexShader: /* glsl */`
+      vertexShader: /* glsl */ `
 
 				varying vec2 vUv;
 				void main() {
@@ -28,10 +33,10 @@ class SobolNumbersMaterial extends MaterialBase {
 				}
 			`,
 
-			fragmentShader: /* glsl */`
+      fragmentShader: /* glsl */ `
 
-				${ shaderSobolCommon }
-				${ shaderSobolGeneration }
+				${sobolCommonGLSL}
+				${sobolGenerationGLSL}
 
 				varying vec2 vUv;
 				uniform vec2 resolution;
@@ -42,39 +47,30 @@ class SobolNumbersMaterial extends MaterialBase {
 
 				}
 			`,
-
-		} );
-
-	}
-
+    });
+  }
 }
 
 export class SobolNumberMapGenerator {
+  generate(renderer, dimensions = 256) {
+    const target = new WebGLRenderTarget(dimensions, dimensions, {
+      type: FloatType,
+      format: RGBAFormat,
+      minFilter: NearestFilter,
+      magFilter: NearestFilter,
+      generateMipmaps: false,
+    });
 
-	generate( renderer, dimensions = 256 ) {
+    const ogTarget = renderer.getRenderTarget();
+    renderer.setRenderTarget(target);
 
-		const target = new WebGLRenderTarget( dimensions, dimensions, {
+    const quad = new FullScreenQuad(new SobolNumbersMaterial());
+    quad.material.resolution.set(dimensions, dimensions);
+    quad.render(renderer);
 
-			type: FloatType,
-			format: RGBAFormat,
-			minFilter: NearestFilter,
-			magFilter: NearestFilter,
-			generateMipmaps: false,
+    renderer.setRenderTarget(ogTarget);
+    quad.dispose();
 
-		} );
-
-		const ogTarget = renderer.getRenderTarget();
-		renderer.setRenderTarget( target );
-
-		const quad = new FullScreenQuad( new SobolNumbersMaterial() );
-		quad.material.resolution.set( dimensions, dimensions );
-		quad.render( renderer );
-
-		renderer.setRenderTarget( ogTarget );
-		quad.dispose();
-
-		return target;
-
-	}
-
+    return target;
+  }
 }

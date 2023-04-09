@@ -11,7 +11,7 @@ export default function Header() {
     );
 
     return (
-        <div className={style.header}>
+        <div className={style.header} id="header">
             <div className={style.logo}>logo</div>
             <div className={style.right}>
                 {userInfo.userId ? <Login /> : <UnLogin />}

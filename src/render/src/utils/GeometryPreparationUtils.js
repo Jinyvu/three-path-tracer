@@ -1,5 +1,7 @@
 import { BufferAttribute } from 'three';
 import { mergeBufferGeometries, mergeVertices } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
+
+// 返回一个数组，数组第i项为geometry的第i个顶点对应的材质在allMaterials中的索引
 export function getGroupMaterialIndicesAttribute( geometry, materials, allMaterials ) {
 
 	const indexAttr = geometry.index;
@@ -54,6 +56,7 @@ export function getGroupMaterialIndicesAttribute( geometry, materials, allMateri
 
 }
 
+// 将geometry中不包含在attributes中的attribute剔除
 export function trimToAttributes( geometry, attributes ) {
 
 	// trim any unneeded attributes
@@ -73,16 +76,19 @@ export function trimToAttributes( geometry, attributes ) {
 
 }
 
+// 补全geometry.attributes在options.attributes缺失的属性，同时设置geometry的顶点索引（用于被三角形引用）
 export function setCommonAttributes( geometry, options ) {
 
 	const { attributes = [], normalMapRequired = false } = options;
 
+	// 若options.attributes中包含normal选项，计算顶点法向量
 	if ( ! geometry.attributes.normal && ( attributes && attributes.includes( 'normal' ) ) ) {
 
 		geometry.computeVertexNormals();
 
 	}
 
+	// 若options.attributes中包含uv选项，初始化geometry.attributes中的uv（可能不是真正的uv）
 	if ( ! geometry.attributes.uv && ( attributes && attributes.includes( 'uv' ) ) ) {
 
 		const vertCount = geometry.attributes.position.count;
@@ -90,13 +96,14 @@ export function setCommonAttributes( geometry, options ) {
 
 	}
 
+	// 若options.attributes中包含tangent选项，计算顶点切线
 	if ( ! geometry.attributes.tangent && ( attributes && attributes.includes( 'tangent' ) ) ) {
 
 		if ( normalMapRequired ) {
 
 			// computeTangents requires an index buffer
 			if ( geometry.index === null ) {
-
+				// 顶点去重
 				geometry = mergeVertices( geometry );
 
 			}
@@ -112,6 +119,7 @@ export function setCommonAttributes( geometry, options ) {
 
 	}
 
+	// 若options.attributes中包含color选项，计算几何体颜色
 	if ( ! geometry.attributes.color && ( attributes && attributes.includes( 'color' ) ) ) {
 
 		const vertCount = geometry.attributes.position.count;
@@ -121,6 +129,7 @@ export function setCommonAttributes( geometry, options ) {
 
 	}
 
+	// 设置几何体的顶点索引
 	if ( ! geometry.index ) {
 
 		// TODO: compute a typed array
@@ -138,11 +147,13 @@ export function setCommonAttributes( geometry, options ) {
 
 }
 
+// 将传入的meshes融合为一个几何体，并把meshes中的所有material融合为一个数组、所有texture融合为一个数组
 export function mergeMeshes( meshes, options = {} ) {
 
 	options = { attributes: null, cloneGeometry: true, ...options };
 
 	const transformedGeometry = [];
+	// 将meshes中所有meshes统一到materialSet中
 	const materialSet = new Set();
 	for ( let i = 0, l = meshes.length; i < l; i ++ ) {
 
@@ -162,6 +173,7 @@ export function mergeMeshes( meshes, options = {} ) {
 
 	}
 
+	// 更新几何体位置；调整几何体的attributes与options.attributes保持一致；为几何体中每个顶点标注顶点对应的材质
 	const materials = Array.from( materialSet );
 	for ( let i = 0, l = meshes.length; i < l; i ++ ) {
 

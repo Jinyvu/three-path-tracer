@@ -1,5 +1,6 @@
 // core
 export * from './core/PathTracingRenderer.js';
+export * from './core/QuiltPathTracingRenderer.js';
 export * from './core/PathTracingSceneGenerator.js';
 export * from './core/DynamicPathTracingSceneGenerator.js';
 export * from './core/MaterialReducer.js';
@@ -28,12 +29,12 @@ export * from './utils/BlurredEnvMapGenerator.js';
 export * from './utils/IESLoader.js';
 
 // materials
-export * from './materials/DenoiseMaterial.js';
-export * from './materials/GraphMaterial.js';
+export * from './materials/fullscreen/DenoiseMaterial.js';
+export * from './materials/fullscreen/GradientMapMaterial.js';
+export * from './materials/debug/GraphMaterial.js';
 export * from './materials/MaterialBase.js';
-export * from './materials/PhysicalPathTracingMaterial.js';
+export * from './materials/pathtracing/PhysicalPathTracingMaterial.js';
+export * from './materials/surface/FogVolumeMaterial.js';
 
-// shaders
-export * from './shader/shaderMaterialSampling.js';
-export * from './shader/shaderUtils.js';
-export * from './shader/shaderStructs.js';
+// detectors
+export * from './detectors/CompatibilityDetector.js';
