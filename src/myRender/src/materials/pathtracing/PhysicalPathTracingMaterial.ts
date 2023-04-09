@@ -14,6 +14,8 @@ import { EquirectHdrInfoUniform } from '../../uniforms/EquirectHdrInfoUniform';
 import { MaterialsTexture } from '../../uniforms/MaterialsTexture.js';
 import { PhysicalCameraUniform } from "../../uniforms/PhysicalCameraUniform";
 import { AttributesTextureArray } from "../../uniforms/AttributesTextureArray";
+import { RenderTarget2DArray } from "../../uniforms/RenderTarget2DArray";
+import { LightsInfoUniformStruct } from "../../uniforms/LightsInfoUniformStruct";
 
 // struct
 import { equirectStructGLSL } from '../../shader/struct/equirectStruct.glsl';
@@ -56,6 +58,11 @@ export class PhysicalPathTracingMaterial extends MaterialBase {
                 attributesArray: { value: new AttributesTextureArray() },
                 materialIndexAttribute: { value: new UIntVertexAttributeTexture() }, // 材质顶点索引
                 materials: { value: new MaterialsTexture() },
+                textures: {value: new RenderTarget2DArray().texture},
+                lights: { value: new LightsInfoUniformStruct() },
+                cameraWorldMatrix: {value: new Matrix4()},
+                invProjectionMatrix: { value: new Matrix4() },
+				backgroundBlur: { value: 0.0 },
                 environmentIntensity: { value: 1.0 }, // 环境光强度
                 environmentRotation: { value: new Matrix4() },    // 环境贴图旋转矩阵
                 envMapInfo: { value: new EquirectHdrInfoUniform() },    // 环境贴图信息
@@ -76,7 +83,7 @@ export class PhysicalPathTracingMaterial extends MaterialBase {
                 precision highp usampler2D;
                 precision highp sampler2DArray;
                 
-                #include<common>
+                #include <common>
                 
                 varying vec2 vUv
                 
@@ -111,7 +118,6 @@ export class PhysicalPathTracingMaterial extends MaterialBase {
                 uniform float environmentIntensity;
                 
                 // light
-                uniform sampler2DArray iesProfiles;
                 uniform LightsInfo lights;
                 
                 // background

@@ -19,7 +19,7 @@ import { LDrawUtils } from "three/examples/jsm/utils/LDrawUtils";
 
 
 
-let initialModel = Object.keys(models)[2];
+let initialModel = Object.keys(models)[0];
 console.log('initialModel', initialModel)
 
 const params = {
@@ -49,7 +49,7 @@ const params = {
 	backgroundAlpha: 1.0,
 	checkerboardTransparency: true,
 
-	enable: true,
+	enable: false,
 	bounces: 5,
 	filterGlossyFactor: 0.5,
 	pause: false,
@@ -112,6 +112,7 @@ export default async function init({ canvasId, loadingId, samplesId }: IInit) {
 
 	// 初始化路径追踪渲染器
 	ptRenderer = new PathTracingRenderer(renderer);
+	ptRenderer.camera = perspectiveCamera;
 	// ptRenderer.alpha = true;
 	ptRenderer.material = new PhysicalPathTracingMaterial();
 	ptRenderer.tiles.set(params.tilesX, params.tilesY);

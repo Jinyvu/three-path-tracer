@@ -109,10 +109,10 @@ export class PathTracingRenderer {
             for (let y = 0; y < tilesY; y++) {
                 for (let x = 0; x < tilesX; x++) {
                     material.cameraWorldMatrix.copy(this.camera?.matrixWorld)
-                    material.invProjectMatrix.copy(this.camera?.projectionMatrixInverse)
+                    material.invProjectionMatrix.copy(this.camera?.projectionMatrixInverse)
 
                     // 设置相机类型为投影相机
-                    material.setDefine('CAMERA_TYPE', 1);
+                    material.setDefine('CAMERA_TYPE', 0);
 
                     // 计算当前渲染的块
                     let tx = x
