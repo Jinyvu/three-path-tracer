@@ -1,105 +1,105 @@
-import { Matrix4, Vector2 } from "three";
-import { MaterialBase } from "../MaterialBase";
+import { Matrix4, Vector2 } from 'three';
+import { MaterialBase } from '../MaterialBase';
 import {
-    MeshBVHUniformStruct,
-    UIntVertexAttributeTexture,
-    shaderStructs,
-    shaderIntersectFunction,
-} from "three-mesh-bvh";
+  MeshBVHUniformStruct,
+  UIntVertexAttributeTexture,
+  shaderStructs,
+  shaderIntersectFunction,
+} from 'three-mesh-bvh';
 
 // utils
-import { renderStructsGLSL } from "./glsl/renderStructs.glsl";
-import { cameraUtilsGLSL } from "./glsl/cameraUtils.glsl";
-import { traceSceneGLSL } from "./glsl/traceScene.glsl";
-import { getSurfaceRecordGLSL } from "./glsl/getSurfaceRecord.glsl";
-import { directLightContributionGLSL } from "./glsl/directLightContribution.glsl";
-import { attenuateHitGLSL } from "./glsl/attenuateHit.glsl";
+import { renderStructsGLSL } from './glsl/renderStructs.glsl';
+import { cameraUtilsGLSL } from './glsl/cameraUtils.glsl';
+import { traceSceneGLSL } from './glsl/traceScene.glsl';
+import { getSurfaceRecordGLSL } from './glsl/getSurfaceRecord.glsl';
+import { directLightContributionGLSL } from './glsl/directLightContribution.glsl';
+import { attenuateHitGLSL } from './glsl/attenuateHit.glsl';
 
 // uniform
-import { EquirectHdrInfoUniform } from "../../uniforms/EquirectHdrInfoUniform";
-import { MaterialsTexture } from "../../uniforms/MaterialsTexture.js";
-import { PhysicalCameraUniform } from "../../uniforms/PhysicalCameraUniform";
-import { AttributesTextureArray } from "../../uniforms/AttributesTextureArray";
-import { RenderTarget2DArray } from "../../uniforms/RenderTarget2DArray";
-import { LightsInfoUniformStruct } from "../../uniforms/LightsInfoUniformStruct";
-import { IESProfilesTexture } from "../../uniforms/IESProfilesTexture";
+import { EquirectHdrInfoUniform } from '../../uniforms/EquirectHdrInfoUniform';
+import { MaterialsTexture } from '../../uniforms/MaterialsTexture.js';
+import { PhysicalCameraUniform } from '../../uniforms/PhysicalCameraUniform';
+import { AttributesTextureArray } from '../../uniforms/AttributesTextureArray';
+import { RenderTarget2DArray } from '../../uniforms/RenderTarget2DArray';
+import { LightsInfoUniformStruct } from '../../uniforms/LightsInfoUniformStruct';
+import { IESProfilesTexture } from '../../uniforms/IESProfilesTexture';
 
 // struct
-import { equirectStructGLSL } from "../../shader/struct/equirectStruct.glsl";
-import { lightsStructGLSL } from "../../shader/struct/lightsStruct.glsl";
-import { materialStructGLSL } from "../../shader/struct/materialStruct.glsl";
-import { bsdfSamplingGLSL } from "../../shader/bsdf/bsdfSampling.glsl";
-import { pcgGLSL } from "../../shader/rand/pcg.glsl";
+import { equirectStructGLSL } from '../../shader/struct/equirectStruct.glsl';
+import { lightsStructGLSL } from '../../shader/struct/lightsStruct.glsl';
+import { materialStructGLSL } from '../../shader/struct/materialStruct.glsl';
+import { bsdfSamplingGLSL } from '../../shader/bsdf/bsdfSampling.glsl';
+import { pcgGLSL } from '../../shader/rand/pcg.glsl';
 import {
-    sobolCommonGLSL,
-    sobolSamplingGLSL,
-} from "../../shader/rand/sobol.glsl";
+  sobolCommonGLSL,
+  sobolSamplingGLSL,
+} from '../../shader/rand/sobol.glsl';
 
 // sampling
-import { equirectSamplingGLSL } from "../../shader/sampling/equirectSampling.glsl";
-import { lightSamplingGLSL } from "../../shader/sampling/lightSampling.glsl";
-import { shapeSamplingGLSL } from "../../shader/sampling/shapeSampling.glsl";
+import { equirectSamplingGLSL } from '../../shader/sampling/equirectSampling.glsl';
+import { lightSamplingGLSL } from '../../shader/sampling/lightSampling.glsl';
+import { shapeSamplingGLSL } from '../../shader/sampling/shapeSampling.glsl';
 
 // common
-import { intersectShapesGLSL } from "../../shader/common/intersectShapes.glsl";
-import { mathGLSL } from "../../shader/common/math.glsl";
-import { utilsGLSL } from "../../shader/common/utils.glsl";
-import { fresnelGLSL } from "../../shader/common/fresnel.glsl";
-import { arraySamplerTexelFetchGLSL } from "../../shader/common/arraySamplerTexelFetch.glsl";
+import { intersectShapesGLSL } from '../../shader/common/intersectShapes.glsl';
+import { mathGLSL } from '../../shader/common/math.glsl';
+import { utilsGLSL } from '../../shader/common/utils.glsl';
+import { fresnelGLSL } from '../../shader/common/fresnel.glsl';
+import { arraySamplerTexelFetchGLSL } from '../../shader/common/arraySamplerTexelFetch.glsl';
 
 export class PhysicalPathTracingMaterial extends MaterialBase {
-    constructor(params = {}) {
-        super({
-            transparent: true,
-            depthWrite: false,
-            defines: {
-                FEATURE_MIS: 1, // MIS采样
-                FEATURE_RUSSIAN_ROULETTE: 1, // 俄罗斯轮盘
-                FEATURE_DOF: 1, // 背景虚化
-                FEATURE_BACKGROUND_MAP: 0, // 环境贴图
-                FEATURE_FOG: 0,
-                CAMERA_TYPE: 0, // 相机类型：0投影、1正交
-                ATTR_NORMAL: 0,
-                ATTR_TANGENT: 1,
-                ATTR_UV: 2,
-                ATTR_COLOR: 3,
-            },
-            uniforms: {
-                resolution: { value: new Vector2() },
-                bounces: { value: 10 }, // 最大弹射次数
-                transmissiveBounces: { value: 10 }, // 最大投射弹射次数
-                physicalCamera: { value: new PhysicalCameraUniform() },
-                bvh: { value: new MeshBVHUniformStruct() },
-                attributesArray: { value: new AttributesTextureArray() },
-                materialIndexAttribute: {
-                    value: new UIntVertexAttributeTexture(),
-                }, // 材质顶点索引
-                materials: { value: new MaterialsTexture() },
-                textures: { value: new RenderTarget2DArray().texture },
-                lights: { value: new LightsInfoUniformStruct() },
-                iesProfiles: { value: new IESProfilesTexture().texture },
-                cameraWorldMatrix: { value: new Matrix4() },
-                invProjectionMatrix: { value: new Matrix4() },
-                backgroundBlur: { value: 0.0 },
-                environmentIntensity: { value: 1.0 }, // 环境光强度
-                environmentRotation: { value: new Matrix4() }, // 环境贴图旋转矩阵
-                envMapInfo: { value: new EquirectHdrInfoUniform() }, // 环境贴图信息
-                backgroundMap: { value: null },
+  constructor(params = {}) {
+    super({
+      transparent: true,
+      depthWrite: false,
+      defines: {
+        FEATURE_MIS: 1, // MIS采样
+        FEATURE_RUSSIAN_ROULETTE: 1, // 俄罗斯轮盘
+        FEATURE_DOF: 1, // 背景虚化
+        FEATURE_BACKGROUND_MAP: 0, // 环境贴图
+        FEATURE_FOG: 0,
+        CAMERA_TYPE: 0, // 相机类型：0投影、1正交
+        ATTR_NORMAL: 0,
+        ATTR_TANGENT: 1,
+        ATTR_UV: 2,
+        ATTR_COLOR: 3,
+      },
+      uniforms: {
+        resolution: { value: new Vector2() },
+        bounces: { value: 10 }, // 最大弹射次数
+        transmissiveBounces: { value: 10 }, // 最大投射弹射次数
+        physicalCamera: { value: new PhysicalCameraUniform() }, // 相机
+        bvh: { value: new MeshBVHUniformStruct() }, // 空间划分结构
+        attributesArray: { value: new AttributesTextureArray() }, // 用于存储划场景划分后的顶点法向量、方位角、uv坐标、color
+        materialIndexAttribute: {
+          value: new UIntVertexAttributeTexture(),
+        }, // 材质顶点索引
+        materials: { value: new MaterialsTexture() }, // 将材质信息以纹理的形式保存
+        textures: { value: new RenderTarget2DArray().texture }, // 用于将纹理以统一格式存储
+        lights: { value: new LightsInfoUniformStruct() }, // 用于将光源信息以纹理信息保存
+        iesProfiles: { value: new IESProfilesTexture().texture },
+        cameraWorldMatrix: { value: new Matrix4() }, // 相机世界矩阵
+        invProjectionMatrix: { value: new Matrix4() }, // 投影矩阵逆矩阵
+        backgroundBlur: { value: 0.0 }, // 背景模糊程度
+        environmentIntensity: { value: 1.0 }, // 环境光强度
+        environmentRotation: { value: new Matrix4() }, // 环境贴图旋转矩阵
+        envMapInfo: { value: new EquirectHdrInfoUniform() }, // 环境贴图信息
+        backgroundMap: { value: null }, // 环境贴图
 
-                seed: { value: 0 },
-                opacity: { value: 0 },
-                filterGlossyFactor: { value: 0.0 },
-                backgroundAlpha: { value: 1.0 },
-                sobolTexture: { value: null },
-            },
-            vertexShader: `
+        seed: { value: 0 }, // sobol序列的seed
+        opacity: { value: 0 }, // 材质透明度
+        filterGlossyFactor: { value: 0.0 }, // TO_TEST
+        backgroundAlpha: { value: 1.0 }, // 背景透明度
+        sobolTexture: { value: null }, // sobol纹理，用于随机采样
+      },
+      vertexShader: `
                 varying vec2 vUv;
                 void main() {
                     gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
                     vUv = uv;
                 }
             `,
-            fragmentShader: `
+      fragmentShader: `
                 #define INFINITY 1e20
 
                 precision highp isampler2D;
@@ -217,7 +217,8 @@ export class PhysicalPathTracingMaterial extends MaterialBase {
                     sobolPixelIndex=(uint(gl_FragCoord.x)<<16)|uint(gl_FragCoord.y);
                     sobolPathIndex=uint(seed);
                     
-                    // ray from camera
+                    // ray from camera 
+                    // 在当前像素点周围一定区域内，随机选取一点与相机位置连成射线
                     Ray ray=getCameraRay();
                     
                     // rotate environment
@@ -389,20 +390,17 @@ export class PhysicalPathTracingMaterial extends MaterialBase {
                     gl_FragColor.a*=opacity;
                 }
             `,
-        });
+    });
 
-        this.setValues(params);
-    }
+    this.setValues(params);
+  }
 
-    onBeforeRender() {
-        // 背景虚化
-        // @ts-ignore
-        this.setDefine(
-            "FEATURE_DOF",
-            this.physicalCamera.bokehSize === 0 ? 0 : 1
-        );
-        // 环境贴图
-        // @ts-ignore
-        this.setDefine("FEATURE_BACKGROUND_MAP", this.backgroundMap ? 1 : 0);
-    }
+  onBeforeRender() {
+    // 背景虚化
+    // @ts-ignore
+    this.setDefine('FEATURE_DOF', this.physicalCamera.bokehSize === 0 ? 0 : 1);
+    // 环境贴图
+    // @ts-ignore
+    this.setDefine('FEATURE_BACKGROUND_MAP', this.backgroundMap ? 1 : 0);
+  }
 }
