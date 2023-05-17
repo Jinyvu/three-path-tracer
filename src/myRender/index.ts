@@ -19,7 +19,7 @@ import { LDrawUtils } from "three/examples/jsm/utils/LDrawUtils";
 
 
 
-let initialModel = Object.keys(models)[12];
+let initialModel = Object.keys(models)[11];
 console.log('initialModel', initialModel)
 
 const params = {
@@ -54,7 +54,7 @@ const params = {
 	filterGlossyFactor: 0.5,
 	pause: false,
 
-	floorColor: "#111111",
+	floorColor: new Color("#111111"),
 	floorOpacity: 1.0,
 	floorRoughness: 0.2,
 	floorMetalness: 0.2,
@@ -73,7 +73,7 @@ let fsQuad: FullScreenQuad
 // 背景
 let envMap, backgroundMap: GradientEquirectTexture, envMapGenerator: BlurredEnvMapGenerator
 // 辅助
-let floorPlane: Mesh, stats: Stats, gui: GUI
+let floorPlane: Mesh<PlaneGeometry, MeshStandardMaterial>, stats: Stats, gui: GUI
 // 状态
 let loadingModel = false, delaySamples = 0
 
@@ -180,10 +180,10 @@ function animate() {
 		return;
 	}
 
-	// floorPlane.material.color.set(params.floorColor);
-	// floorPlane.material.roughness = params.floorRoughness;
-	// floorPlane.material.metalness = params.floorMetalness;
-	// floorPlane.material.opacity = params.floorOpacity;
+	floorPlane.material.color.set(params.floorColor);
+	floorPlane.material.roughness = params.floorRoughness;
+	floorPlane.material.metalness = params.floorMetalness;
+	floorPlane.material.opacity = params.floorOpacity;
 
 	// 光栅化
 	if (ptRenderer.samples < 1.0 || !params.enable) {
@@ -350,20 +350,20 @@ function buildGui() {
 	// 	else document.body.classList.remove("checkerboard");
 	// });
 
-	// const floorFolder = gui.addFolder("floor");
-	// floorFolder.addColor(params, "floorColor").onChange(() => {
-	// 	ptRenderer.reset();
-	// });
-	// floorFolder.add(params, "floorRoughness", 0, 1).onChange(() => {
-	// 	ptRenderer.reset();
-	// });
-	// floorFolder.add(params, "floorMetalness", 0, 1).onChange(() => {
-	// 	ptRenderer.reset();
-	// });
-	// floorFolder.add(params, "floorOpacity", 0, 1).onChange(() => {
-	// 	ptRenderer.reset();
-	// });
-	// floorFolder.close();
+	const floorFolder = gui.addFolder("floor");
+	floorFolder.addColor(params, "floorColor").onChange(() => {
+		ptRenderer.reset();
+	});
+	floorFolder.add(params, "floorRoughness", 0, 1).onChange(() => {
+		ptRenderer.reset();
+	});
+	floorFolder.add(params, "floorMetalness", 0, 1).onChange(() => {
+		ptRenderer.reset();
+	});
+	floorFolder.add(params, "floorOpacity", 0, 1).onChange(() => {
+		ptRenderer.reset();
+	});
+	floorFolder.close();
 }
 
 // 更新环境贴图
@@ -471,7 +471,7 @@ async function updateModel() {
 	}
 
 	const onFinish = async () => {
-		// 删除自发光贴图
+		// 删除自发光材质
 		if (modelInfo.removeEmission) {
 			model.traverse((c) => {
 				if (c.material) {

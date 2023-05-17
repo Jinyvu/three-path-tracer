@@ -1,46 +1,29 @@
-# Getting Started with Create React App
+# 运行环境
+nodejs >= 14
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+安装有make、g++命令（需要运行opengl）
 
-## Available Scripts
+# 使用方法
+终端运行：
 
-In the project directory, you can run:
+1. `npm install`
+2. `npm run start`
 
-### `npm start`
-
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
-
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
-
-### `npm test`
-
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
-
-### `npm run build`
-
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
-
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
-
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
-
-### `npm run eject`
-
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
-
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
-
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
+# 操作
++ 开启光线追踪：点击右侧控制面板controls下的enable。开启光追后，渲染器会自动不断进行采样并与之前的结果融合。
+> 光追对性能的要求较高，开启光追后可能会出现在暂时的页面卡死情况。
++ 暂停光线追踪采样：点击右侧控制面板controls下的pause。
++ 切换模型：控制面板models选择框切换
++ 切换环境贴图：
+  1. background中backgroundType切换为environment
+  2. environment中map选择框切换
+- 控制面板其余选项说明：
+  - multipleImportanceSampling：开启MIS采样
+  - acesToneMapping：开启toneMapping，防止渲染结果过饱和
+  - bounces：光线最大弹射次数
+  - resolutionScale：默认为devicePixelRatio的倒数
+  - samplesPerFrame：一帧中进行多少次采样
+  - tilesX、tilesY：将屏幕分为tilesX * tilesY块，一块一块地进行渲染。可以减轻浏览器渲染的负担，防止浏览器过于卡顿。tilesX * tilesY越大，浏览器越流畅
+  - env map blur：环境贴图的模糊程度
+  - intensity：环境光光强
+  - bgGradientTop、bgGradientBottom：backgroundType设置为Gradient时，可以指定从顶部到底部的渐变颜色
