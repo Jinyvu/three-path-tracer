@@ -22,6 +22,7 @@ import { LDrawUtils } from "three/examples/jsm/utils/LDrawUtils";
 let initialModel = Object.keys(models)[11];
 console.log('initialModel', initialModel)
 
+// 初始化配置参数
 const params = {
 	multipleImportanceSampling: true,
 	acesToneMapping: true,
@@ -158,7 +159,11 @@ export default async function init({ canvasId, loadingId, samplesId }: IInit) {
 	// 添加帧数显示器
 	stats = new Stats();
 	document.body.appendChild(stats.dom);
+
+	// 添加背景贴图
 	scene.background = backgroundMap;
+
+	// 设置屏幕划分块数
 	ptRenderer.tiles.set(params.tilesX, params.tilesY);
 
 	updateModel();
@@ -190,6 +195,7 @@ function animate() {
 		renderer.render(scene, perspectiveCamera);
 	}
 
+	// 光追
 	if (params.enable && delaySamples === 0) {
 		const samples = Math.floor(ptRenderer.samples);
 		samplesEl.innerText = `samples: ${samples}`;
@@ -253,7 +259,7 @@ function buildGui() {
 		gui.destroy();
 	}
 
-	gui = new GUI({container: document.getElementById('gui')});
+	gui = new GUI({ container: document.getElementById('gui') });
 
 	gui.add(params, "model", Object.keys(models)).onChange(updateModel);
 
@@ -544,23 +550,24 @@ async function updateModel() {
 		sceneInfo = result;
 		scene.add(sceneInfo.scene);
 
+		// 空间划分时，会将场景中的所有材质、纹理和光源提取出来，同时生成空间划分结果
 		const { bvh, textures, materials, lights } = result;
 		const geometry = bvh.geometry;
 		const material = ptRenderer.material;
-
-		material.bvh.updateFrom(bvh);
+		// 为PBM设置参数
+		material.bvh.updateFrom(bvh);	// ？
 		material.attributesArray.updateFrom(
 			geometry.attributes.normal,
 			geometry.attributes.tangent,
 			geometry.attributes.uv,
 			geometry.attributes.color
-		);
+		);	// 将geometry的normal、tangent、uv、color以dataTexture的形式存储
 		material.materialIndexAttribute.updateFrom(
 			geometry.attributes.materialIndex
-		);
-		material.textures.setTextures(renderer, 2048, 2048, textures);
-		material.materials.updateFrom(materials, textures);
-		material.lights.updateFrom(lights);
+		);	// 建立每个顶点对材质的索引
+		material.textures.setTextures(renderer, 2048, 2048, textures); // 将场景中的所有纹理以2048*2048的格式存储
+		material.materials.updateFrom(materials, textures);	// 保存材质信息以及材质对应的纹理
+		material.lights.updateFrom(lights);	// 保存光源信息
 
 		generator.dispose();
 

@@ -4,6 +4,7 @@ export const directLightContributionGLSL = /*glsl*/`
 
 		// uniformly pick a light or environment map
 		if( lightsDenom != 0.0 && sobol( 5 ) < float( lights.count ) / lightsDenom ) {
+			// 从反射点往任意方向采样一条射线
 
 			// sample a light or environment
 			LightRecord lightRec = randomLightSample( lights.tex, iesProfiles, lights.count, rayOrigin, sobol3( 6 ) );

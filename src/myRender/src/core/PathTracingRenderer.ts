@@ -13,27 +13,29 @@ import { FullScreenQuad } from "three/examples/jsm/postprocessing/Pass";
 import { SobolNumberMapGenerator } from "../utils/SobolNumberMapGenerator";
 
 const originClearColor = new Color();
+// 屏幕划分裁剪区域
 const _scissor = new Vector4();
+// 渲染区域
 const _viewport = new Vector4();
 
 export class PathTracingRenderer {
-    public camera: PerspectiveCamera | null = null;
-    public tiles: Vector2 = new Vector2(1, 1);
+    public camera: PerspectiveCamera | null = null; // 相机
+    public tiles: Vector2 = new Vector2(1, 1);  // 屏幕划分的块数
     public stableTiles: boolean = true;
-    public stableNoise = false
+    public stableNoise = false  // 每次重置画布时，是否也把采样噪声重置
 
-    #samples: number = 0;
-    #renderer: WebGLRenderer;
-    #task: Generator<undefined, void, unknown> | null = null;
-    #primaryTarget: WebGLRenderTarget = new WebGLRenderTarget(1, 1, {
+    #samples: number = 0;   // 采样次数
+    #renderer: WebGLRenderer;   // 渲染器
+    #task: Generator<undefined, void, unknown> | null = null;   // 渲染任务
+    #primaryTarget: WebGLRenderTarget = new WebGLRenderTarget(1, 1, {   // 主画布
         format: RGBAFormat,
         type: FloatType,
     });
-    #fsQuad: FullScreenQuad = new FullScreenQuad(null);
-    #subFrame: Vector4 = new Vector4(0, 0, 1, 1);
-    #sobolTarget: WebGLRenderTarget;
-    #opacityFactor: number = 1.0;
-    #curTile: number = 0;
+    #fsQuad: FullScreenQuad = new FullScreenQuad(null); // 屏幕划分对象
+    #subFrame: Vector4 = new Vector4(0, 0, 1, 1);   // 用于控制渲染的画面呈现在整个画布的哪块区域，默认是占满整张画布
+    #sobolTarget: WebGLRenderTarget;    // sobol纹理，噪声纹理，用于保证采样的随机性
+    #opacityFactor: number = 1.0;   // 透明度
+    #curTile: number = 0;   // 当前渲染的屏幕块
 
     get material() {
         return this.#fsQuad.material as any;
@@ -58,6 +60,12 @@ export class PathTracingRenderer {
         );
     }
 
+    /**
+     * 设置主画布尺寸
+     * @param w 宽
+     * @param h 高
+     * @returns 
+     */
     setSize(w, h) {
         const wp = Math.ceil(w);
         const hp = Math.ceil(h);
@@ -73,6 +81,9 @@ export class PathTracingRenderer {
         this.reset();
     }
 
+    /**
+     * 析构函数
+     */
     dispose() {
         this.#primaryTarget.dispose();
         this.#sobolTarget.dispose();
@@ -80,6 +91,9 @@ export class PathTracingRenderer {
         this.#task = null;
     }
 
+    /**
+     * 重置主画布
+     */
     reset() {
         // 暂存当前画布
         const originRenderTarget = this.#renderer.getRenderTarget();
@@ -103,25 +117,36 @@ export class PathTracingRenderer {
         }
     }
 
+    /**
+     * 渲染任务生成器
+     */
     *renderTask() {
         const { material } = this;
 
+        // 用于存储原始画布的裁剪数据
         const originScissor = new Vector4();
+        // 用于存储原始画布的视窗数据
         const originViewport = new Vector4();
 
         while (true) {
+            // 设置材质透明度，与采样次数相关，用于体现本次采样结果对于最终结果的权重
             material.opacity = this.#opacityFactor / (this.samples + 1);
             material.blending = NormalBlending;
 
+            // 获取控制渲染区域的参数
             const subX = this.#subFrame[0];
             const subY = this.#subFrame[1];
             const subW = this.#subFrame[2];
             const subH = this.#subFrame[3];
 
+            // 主画布宽高
             const w = this.#primaryTarget.width;
             const h = this.#primaryTarget.height;
+            // 设置材质解析率
             material.resolution.set(w * subW, h * subH);
+            // 设置材质sobol纹理
             material.sobolTexture = this.#sobolTarget.texture;
+            // 采样相关，sobol纹理对应的seed参数
             material.seed++;
 
             const tilesX = this.tiles.x || 1;
@@ -161,6 +186,7 @@ export class PathTracingRenderer {
                     this.#renderer.setRenderTarget(this.#primaryTarget);
                     this.#renderer.setScissorTest(true);
 
+                    // 计算当前划分区域的起始位置和长宽
                     _scissor.x = (tx * w) / tilesX;
                     _scissor.y = ((tilesY - ty - 1) * h) / tilesY;
                     _scissor.z = w / tilesX;
@@ -176,8 +202,10 @@ export class PathTracingRenderer {
                     _scissor.z = _scissor.z;
                     _scissor.w = _scissor.w;
 
+                    // 屏幕上的一像素可能是由多个实际像素表示的，控制区域的像素个数与屏幕像素一致，可以减少计算或保证分辨率
                     _scissor.multiplyScalar(invPixelRatio).ceil();
 
+                    // 设置渲染区域（会把图像渲染到画布的哪块区域）
                     _viewport.x = subX * w;
                     _viewport.y = subY * h;
                     _viewport.z = subW * w;
@@ -211,6 +239,9 @@ export class PathTracingRenderer {
         }
     }
 
+    /**
+     * 添加渲染任务
+     */
     update() {
         if (!this.#task) {
             this.#task = this.renderTask();
