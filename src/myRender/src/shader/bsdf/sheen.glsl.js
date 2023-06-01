@@ -1,6 +1,5 @@
 export const sheenGLSL = /* glsl */`
 
-	// See equation (2) in http://www.aconty.com/pdf/s2017_pbs_imageworks_sheen.pdf
 	float velvetD( float cosThetaH, float roughness ) {
 
 		float alpha = max( roughness, 0.07 );
@@ -39,14 +38,12 @@ export const sheenGLSL = /* glsl */`
 
 	}
 
-	// See equation (3) in http://www.aconty.com/pdf/s2017_pbs_imageworks_sheen.pdf
 	float velvetLambda( float cosTheta, float alpha ) {
 
 		return abs( cosTheta ) < 0.5 ? exp( velvetL( cosTheta, alpha ) ) : exp( 2.0 * velvetL( 0.5, alpha ) - velvetL( 1.0 - cosTheta, alpha ) );
 
 	}
 
-	// See Section 3, Shadowing Term, in http://www.aconty.com/pdf/s2017_pbs_imageworks_sheen.pdf
 	float velvetG( float cosThetaO, float cosThetaI, float roughness ) {
 
 		float alpha = max( roughness, 0.07 );
@@ -81,7 +78,6 @@ export const sheenGLSL = /* glsl */`
 
 	}
 
-	// See Section 5, Layering, in http://www.aconty.com/pdf/s2017_pbs_imageworks_sheen.pdf
 	float sheenAlbedoScaling( vec3 wo, SurfaceRecord surf ) {
 
 		float alpha = max( surf.sheenRoughness, 0.07 );

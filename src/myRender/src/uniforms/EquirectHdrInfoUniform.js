@@ -38,7 +38,6 @@ function binarySearchFindClosestIndexOf(
 }
 
 function colorToLuminance(r, g, b) {
-  // https://en.wikipedia.org/wiki/Relative_luminance
   return 0.2126 * r + 0.7152 * g + 0.0722 * b;
 }
 
@@ -136,8 +135,6 @@ export class EquirectHdrInfoUniform {
   }
 
   updateFrom(hdr) {
-    // https://github.com/knightcrawler25/GLSL-PathTracer/blob/3c6fd9b6b3da47cd50c527eeb45845eef06c55c3/src/loaders/hdrloader.cpp
-    // https://pbr-book.org/3ed-2018/Light_Transport_I_Surface_Reflection/Sampling_Light_Sources#InfiniteAreaLights
     const map = preprocessEnvMap(hdr);
     map.wrapS = RepeatWrapping;
     map.wrapT = RepeatWrapping;
@@ -166,7 +163,6 @@ export class EquirectHdrInfoUniform {
 
         // the probability of the pixel being selected in this row is the
         // scale of the luminance relative to the rest of the pixels.
-        // TODO: this should also account for the solid angle of the pixel when sampling
         const weight = colorToLuminance(r, g, b);
         cumulativeRowWeight += weight;
         totalSumValue += weight;

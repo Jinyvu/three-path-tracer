@@ -82,7 +82,6 @@ export const bsdfSamplingGLSL = /* glsl */`
 	// diffuse
 	float diffuseEval( vec3 wo, vec3 wi, vec3 wh, SurfaceRecord surf, out vec3 color ) {
 
-		// https://schuttejoe.github.io/post/disneybsdf/
 		float fl = schlickFresnel( wi.z, 0.0 );
 		float fv = schlickFresnel( wo.z, 0.0 );
 
@@ -128,7 +127,6 @@ export const bsdfSamplingGLSL = /* glsl */`
 		F = mix( F, iridescenceF,  surf.iridescence );
 
 		// PDF
-		// See 14.1.1 Microfacet BxDFs in https://www.pbr-book.org/
 		float incidentTheta = acos( wo.z );
 		float G = ggxShadowMaskG2( wi, wo, roughness );
 		float D = ggxDistribution( wh, roughness );
@@ -156,51 +154,6 @@ export const bsdfSamplingGLSL = /* glsl */`
 	}
 
 
-	// transmission
-	/*
-	float transmissionEval( vec3 wo, vec3 wi, vec3 wh, SurfaceRecord surf, out vec3 color ) {
-
-		// See section 4.2 in https://www.cs.cornell.edu/~srm/publications/EGSR07-btdf.pdf
-
-		float filteredRoughness = surf.filteredRoughness;
-		float eta = surf.eta;
-		bool frontFace = surf.frontFace;
-		bool thinFilm = surf.thinFilm;
-
-		color = surf.transmission * surf.color;
-
-		float denom = pow( eta * dot( wi, wh ) + dot( wo, wh ), 2.0 );
-		return ggxPDF( wo, wh, filteredRoughness ) / denom;
-
-	}
-
-	vec3 transmissionDirection( vec3 wo, SurfaceRecord surf ) {
-
-		float filteredRoughness = surf.filteredRoughness;
-		float eta = surf.eta;
-		bool frontFace = surf.frontFace;
-
-		// sample ggx vndf distribution which gives a new normal
-		vec3 halfVector = ggxDirection(
-			wo,
-			vec2( filteredRoughness ),
-			sobol2( 13 )
-		);
-
-		vec3 lightDirection = refract( normalize( - wo ), halfVector, eta );
-		if ( surf.thinFilm ) {
-
-			lightDirection = - refract( normalize( - lightDirection ), - vec3( 0.0, 0.0, 1.0 ), 1.0 / eta );
-
-		}
-
-		return normalize( lightDirection );
-
-	}
-	*/
-
-	// TODO: This is just using a basic cosine-weighted specular distribution with an
-	// incorrect PDF value at the moment. Update it to correctly use a GGX distribution
 	float transmissionEval( vec3 wo, vec3 wi, vec3 wh, SurfaceRecord surf, out vec3 color ) {
 
 		color = surf.transmission * surf.color;
@@ -250,7 +203,6 @@ export const bsdfSamplingGLSL = /* glsl */`
 		color = color * ( 1.0 - surf.clearcoat * F ) + fClearcoat * surf.clearcoat * wi.z;
 
 		// PDF
-		// See equation (27) in http://jcgt.org/published/0003/02/03/
 		return ggxPDF( wo, wh, roughness ) / ( 4.0 * dot( wi, wh ) );
 
 	}
@@ -280,7 +232,6 @@ export const bsdfSamplingGLSL = /* glsl */`
 		float D = velvetD( cosThetaH, surf.sheenRoughness );
 		float G = velvetG( cosThetaO, cosThetaI, surf.sheenRoughness );
 
-		// See equation (1) in http://www.aconty.com/pdf/s2017_pbs_imageworks_sheen.pdf
 		vec3 color = surf.sheenColor;
 		color *= D * G / ( 4.0 * abs( cosThetaO * cosThetaI ) );
 		color *= wi.z;

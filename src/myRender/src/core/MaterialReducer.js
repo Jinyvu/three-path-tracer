@@ -1,5 +1,3 @@
-// https://github.com/gkjohnson/webxr-sandbox/blob/main/skinned-mesh-batching/src/MaterialReducer.js
-
 function isTypedArray(arr) {
   return arr.buffer instanceof ArrayBuffer && 'BYTES_PER_ELEMENT' in arr;
 }

@@ -1,6 +1,5 @@
 export const pcgGLSL = /* glsl */ `
 
-	// https://www.shadertoy.com/view/wltcRS
 	uvec4 WHITE_NOISE_SEED;
 
 	void rng_initialize( vec2 p, int frame ) {
@@ -10,7 +9,6 @@ export const pcgGLSL = /* glsl */ `
 
 	}
 
-	// https://www.pcg-random.org/
 	void pcg4d( inout uvec4 v ) {
 
 		v = v * 1664525u + 1013904223u;

@@ -28,7 +28,7 @@ export const iridescenceGLSL = /* glsl */`
 
 	}
 
-	// Fresnel equations for dielectric/dielectric interfaces. See https://belcour.github.io/blog/research/2017/05/01/brdf-thin-film.html
+	// Fresnel equations for dielectric/dielectric interfaces
 	vec3 evalSensitivity( float OPD, vec3 shift ) {
 
 		float phase = 2.0 * PI * OPD * 1.0e-9;
@@ -46,7 +46,6 @@ export const iridescenceGLSL = /* glsl */`
 
 	}
 
-	// See Section 4. Analytic Spectral Integration, A Practical Extension to Microfacet Theory for the Modeling of Varying Iridescence, https://hal.archives-ouvertes.fr/hal-01518344/document
 	vec3 evalIridescence( float outsideIOR, float eta2, float cosTheta1, float thinFilmThickness, vec3 baseF0 ) {
 
 		vec3 I;

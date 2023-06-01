@@ -7,7 +7,6 @@ export const fresnelGLSL = /* glsl */`
 
 	}
 
-	// https://google.github.io/filament/Filament.md.html#materialsystem/diffusebrdf
 	float schlickFresnel( float cosine, float f0 ) {
 
 		return f0 + ( 1.0 - f0 ) * pow( 1.0 - cosine, 5.0 );
@@ -28,7 +27,6 @@ export const fresnelGLSL = /* glsl */`
 
 	float dielectricFresnel( float cosThetaI, float eta ) {
 
-		// https://schuttejoe.github.io/post/disneybsdf/
 		float ni = eta;
 		float nt = 1.0;
 
@@ -50,7 +48,6 @@ export const fresnelGLSL = /* glsl */`
 
 	}
 
-	// https://raytracing.github.io/books/RayTracingInOneWeekend.html#dielectrics/schlickapproximation
 	float iorRatioToF0( float eta ) {
 
 		return pow( ( 1.0 - eta ) / ( 1.0 + eta ), 2.0 );
@@ -81,18 +78,4 @@ export const fresnelGLSL = /* glsl */`
 
 	}
 
-	/*
-	// https://schuttejoe.github.io/post/disneybsdf/
-	float disneyFresnel( vec3 wo, vec3 wi, vec3 wh, float f0, float eta, float metalness ) {
-
-		float dotHV = dot( wo, wh );
-		float dotHL = dot( wi, wh );
-
-		float dielectricFresnel = dielectricFresnel( abs( dotHV ), eta );
-		float metallicFresnel = schlickFresnel( dotHL, f0 );
-
-		return mix( dielectricFresnel, metallicFresnel, metalness );
-
-	}
-	*/
 `;

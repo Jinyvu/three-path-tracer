@@ -90,8 +90,6 @@ export class MaterialsTexture extends DataTexture {
     }
 
     function getUVTransformTexture(material) {
-      // https://github.com/mrdoob/three.js/blob/f3a832e637c98a404c64dae8174625958455e038/src/renderers/webgl/WebGLMaterials.js#L204-L306
-      // https://threejs.org/docs/#api/en/textures/Texture.offset
       // fallback order of textures to use as a common uv transform
       return (
         material.map ||

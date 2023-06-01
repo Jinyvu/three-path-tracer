@@ -1,7 +1,3 @@
-// References
-// - https://jcgt.org/published/0009/04/01/
-// - Code from https://www.shadertoy.com/view/WtGyDm
-
 // functions to generate multi-dimensions variables of the same functions
 // to support 1, 2, 3, and 4 dimensional sobol sampling.
 function generateSobolFunctionVariants(dim = 1) {

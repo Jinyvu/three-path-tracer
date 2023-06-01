@@ -1,7 +1,5 @@
 export const utilsGLSL = /* glsl */`
 
-	// TODO: possibly this should be renamed something related to material or path tracing logic
-
 	#ifndef RAY_OFFSET
 	#define RAY_OFFSET 1e-4
 	#endif
@@ -18,7 +16,6 @@ export const utilsGLSL = /* glsl */`
 
 	}
 
-	// https://github.com/KhronosGroup/glTF/blob/main/extensions/2.0/Khronos/KHR_materials_volume/README.md#attenuation
 	vec3 transmissionAttenuation( float dist, vec3 attColor, float attDist ) {
 
 		vec3 ot = - log( attColor ) / attDist;
@@ -39,7 +36,6 @@ export const utilsGLSL = /* glsl */`
 
 			// Scale by the ior ratio to retrieve the appropriate half vector
 			// From Section 2.2 on computing the transmission half vector:
-			// https://blog.selfshadow.com/publications/s2015-shading-course/burley/s2015_pbs_disney_bsdf_notes.pdf
 			h = normalize( wi + wo * eta );
 
 		}
@@ -106,8 +102,6 @@ export const utilsGLSL = /* glsl */`
 
 	}
 
-	// tentFilter from Peter Shirley's 'Realistic Ray Tracing (2nd Edition)' book, pg. 60
-	// erichlof/THREE.js-PathTracing-Renderer/
 	float tentFilter( float x ) {
 
 		return x < 0.5 ? sqrt( 2.0 * x ) - 1.0 : 1.0 - sqrt( 2.0 - ( 2.0 * x ) );

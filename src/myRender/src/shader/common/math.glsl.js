@@ -2,7 +2,6 @@ export const mathGLSL = /* glsl */`
 
 	// Fast arccos approximation used to remove banding artifacts caused by numerical errors in acos.
 	// This is a cubic Lagrange interpolating polynomial for x = [-1, -1/2, 0, 1/2, 1].
-	// For more information see: https://github.com/gkjohnson/three-gpu-pathtracer/pull/171#issuecomment-1152275248
 	float acosApprox( float x ) {
 
 		x = clamp( x, -1.0, 1.0 );

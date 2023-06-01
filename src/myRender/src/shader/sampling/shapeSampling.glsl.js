@@ -2,8 +2,6 @@ export const shapeSamplingGLSL = /* glsl */`
 
 	vec3 sampleHemisphere( vec3 n, vec2 uv ) {
 
-		// https://www.rorydriscoll.com/2009/01/07/better-sampling/
-		// https://graphics.pixar.com/library/OrthonormalB/paper.pdf
 		float sign = n.z == 0.0 ? 1.0 : sign( n.z );
 		float a = - 1.0 / ( sign + n.z );
 		float b = n.x * n.y * a;

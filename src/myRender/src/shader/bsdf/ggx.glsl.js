@@ -1,20 +1,8 @@
 export const ggxGLSL = /* glsl */`
 
-	// The GGX functions provide sampling and distribution information for normals as output so
-	// in order to get probability of scatter direction the half vector must be computed and provided.
-	// [0] https://www.cs.cornell.edu/~srm/publications/EGSR07-btdf.pdf
-	// [1] https://hal.archives-ouvertes.fr/hal-01509746/document
-	// [2] http://jcgt.org/published/0007/04/01/
-	// [4] http://jcgt.org/published/0003/02/03/
-
-	// trowbridge-reitz === GGX === GTR
-
 	vec3 ggxDirection( vec3 incidentDir, vec2 roughness, vec2 uv ) {
 
-		// TODO: try GGXVNDF implementation from reference [2], here. Needs to update ggxDistribution
-		// function below, as well
 
-		// Implementation from reference [1]
 		// stretch view
 		vec3 V = normalize( vec3( roughness * incidentDir.xy, incidentDir.z ) );
 
@@ -39,9 +27,6 @@ export const ggxGLSL = /* glsl */`
 
 	}
 
-	// Below are PDF and related functions for use in a Monte Carlo path tracer
-	// as specified in Appendix B of the following paper
-	// See equation (34) from reference [0]
 	float ggxLamda( float theta, float roughness ) {
 
 		float tanTheta = tan( theta );
@@ -53,14 +38,12 @@ export const ggxGLSL = /* glsl */`
 
 	}
 
-	// See equation (34) from reference [0]
 	float ggxShadowMaskG1( float theta, float roughness ) {
 
 		return 1.0 / ( 1.0 + ggxLamda( theta, roughness ) );
 
 	}
 
-	// See equation (125) from reference [4]
 	float ggxShadowMaskG2( vec3 wi, vec3 wo, float roughness ) {
 
 		float incidentTheta = acos( wi.z );
@@ -69,7 +52,6 @@ export const ggxGLSL = /* glsl */`
 
 	}
 
-	// See equation (33) from reference [0]
 	float ggxDistribution( vec3 halfVector, float roughness ) {
 
 		float a2 = roughness * roughness;
@@ -88,7 +70,6 @@ export const ggxGLSL = /* glsl */`
 
 	}
 
-	// See equation (3) from reference [2]
 	float ggxPDF( vec3 wi, vec3 halfVector, float roughness ) {
 
 		float incidentTheta = acos( wi.z );
