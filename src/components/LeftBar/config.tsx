@@ -3,10 +3,10 @@ import type { MenuProps } from "antd";
 export type MenuItem = Required<MenuProps>["items"][number];
 
 export type TAsset = {
-    imgUrl: string;
+    assetId: string;
     assetUrl: string;
-    fileName: string;
-    fileId: string;
+    snapshotId: string;
+    snapshotUrl: string;
 };
 
 export function getItem(

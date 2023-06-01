@@ -1,24 +1,25 @@
 import request, {requestFile} from "@/utils/request"
 
-const PATH = 'asset'
+const PATH = 'assets'
 
 export interface IFetchAssets {
-    userId: string;
+    userId: number;
 }
 
 export type TFetchAssetsRes = {
-    imgUrl: string;
+    assetId: string;
     assetUrl: string;
-    fileName: string;
-    fileId: string;
+    snapshotId: string;
+    snapshotUrl: string;
 }[]
 
 const fetchAssets = (params: IFetchAssets) => {
-    return request<TFetchAssetsRes>(`${PATH}/login`, {...params})
+    return request<TFetchAssetsRes>(`${PATH}/fetch`, {...params})
 }
 
 export interface IDeleteAsset {
-    fileId: string
+    assetId: string
+    userId: number
 }
 
 export type TDeleteAssetRes = boolean
@@ -28,14 +29,16 @@ const deleteAsset = (params: IDeleteAsset) => {
 }
 
 export interface IUploadAsset {
-    files: File[];
+    asset: File;
+    snapshot: File;
+    userId: number;
 }
 
 export type TUploadAssetRes = {
-    imgUrl: string;
+    assetId: string;
     assetUrl: string;
-    fileName: string;
-    fileId: string;
+    snapshotId: string;
+    snapshotUrl: string;
 }
 
 const uploadAsset = (params: IUploadAsset) => {

@@ -5,7 +5,7 @@ import { userApis } from "@/services";
 type UserInfo = {
     userName?: string;
     userAvatar?: string;
-    userId?: string;
+    userId?: number;
     userEmail?: string;
 };
 
@@ -22,7 +22,11 @@ interface IMainState {
 }
 
 const initialState: IMainState = {
-    userInfo: {},
+    userInfo: {
+        // userId: 'testUserId',
+        // userName: '秦心',
+        // userEmail: 'penglaishanneet1@163.com'
+    },
     loginDialogVisible: false,
     assetsVisbile: false,
     curModel: null,

@@ -5,8 +5,14 @@
     width: inherit;
     
     .avatar {
-        width: 2rem;
-        height: 2rem;
+        width: 3rem;
+        height: 3rem;
+        line-height: 3rem;
         margin-right: 1rem;
+        border-radius: 50%;
+        background-color: aliceblue;
+        text-align: center;
+        font-size: 2rem;
+        color: #2f54eb;
     }
 }

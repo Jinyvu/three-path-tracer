@@ -5,22 +5,30 @@ interface IRequestRes<T> {
     error: string;
 }
 
+const BACKEND_HOST = process.env.NODE_ENV === 'development' ? 'http://127.0.0.1:7001' : ''
+
 /**
  * 所有請求統一使用post
  * @param url 
  * @param params 
  */
 export default function request<T>(url: string, params: any): Promise<T> {
+    console.log(params)
     return new Promise((resolve, reject) => {
-        fetch(`${process.env.BACK_HOST}/${url}`, {
+        fetch(`${BACKEND_HOST}/${url}`, {
             method: 'POST',
-            body: {...params},
+            headers: {
+                'Content-Type': 'application/json;charset=UTF-8'
+            },
+            body: JSON.stringify({...params}),
+            credentials: 'include'
+            
         }).then(response => response.json().then((result: IRequestRes<T>) => {
             if(result.success){
                 resolve(result.data)
             }
             else {
-                reject(result.message)
+                reject(result.error)
             }
         })).catch(err => reject(err))
     })
@@ -32,7 +40,7 @@ export function requestFile<T>(url: string, params: any): Promise<T> {
         formData.append(key, params[key])
     }
     return new Promise((resolve, reject) => {
-        fetch(`${process.env.BACK_HOST}/${url}`, {
+        fetch(`${BACKEND_HOST}/${url}`, {
             method: 'POST',
             body: formData,
         }).then(response => response.json().then((result: IRequestRes<T>) => {
